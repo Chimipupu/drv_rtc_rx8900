@@ -14,6 +14,8 @@
 // -----------------------------------------------------------
 static rtc_rx8900_config_t s_config;
 
+static void time_dec_to_bcd(rtc_rx8900_time_t *p_time);
+static void time_bcd_to_dec(rtc_rx8900_time_t *p_time);
 static void rx8900_start(void);
 static void rx8900_stop(void);
 static void rx8900_write_reg(uint8_t reg_addr, uint8_t data);
@@ -21,6 +23,25 @@ static uint8_t rx8900_read_reg(uint8_t reg_addr);
 // -----------------------------------------------------------
 // [Static関数]
 
+static void time_dec_to_bcd(rtc_rx8900_time_t *p_time)
+{
+    p_time->sec   = DEC_TO_BCD(p_time->sec);
+    p_time->min   = DEC_TO_BCD(p_time->min);
+    p_time->hour  = DEC_TO_BCD(p_time->hour);
+    p_time->day   = DEC_TO_BCD(p_time->day);
+    p_time->month = DEC_TO_BCD(p_time->month);
+    p_time->year  = DEC_TO_BCD(p_time->year);
+}
+
+static void time_bcd_to_dec(rtc_rx8900_time_t *p_time)
+{
+    p_time->sec   = BCD_TO_DEC(p_time->sec);
+    p_time->min   = BCD_TO_DEC(p_time->min);
+    p_time->hour  = BCD_TO_DEC(p_time->hour);
+    p_time->day   = BCD_TO_DEC(p_time->day);
+    p_time->month = BCD_TO_DEC(p_time->month);
+    p_time->year  = BCD_TO_DEC(p_time->year);
+}
 static void rx8900_start(void)
 {
     // 拡張レジスタ @Addr=0x0DのBit4のTEをセット
@@ -99,7 +120,10 @@ bool drv_rtc_rx8900_init(rtc_rx8900_config_t *p_config)
     // NOTE: Bit0のRESETを1にしてカウントをクリア
     rx8900_write_reg(RTC_RX8900_REG_CTRL, 0x01);
 
-    // TODO: 割り込み/時刻/アラームの設定
+    // 時刻設定
+    drv_rtc_rx8900_set_time(&s_config.init_time);
+
+    // TODO: 割り込み/アラームの設定
 
     // RTCスタート(カウント開始)
     rx8900_start();
@@ -109,12 +133,32 @@ bool drv_rtc_rx8900_init(rtc_rx8900_config_t *p_config)
 
 void drv_rtc_rx8900_set_time(rtc_rx8900_time_t *p_time)
 {
-    // TODO:
+    rtc_rx8900_time_t bcd_time;
+
+    bcd_time = *p_time;
+    time_dec_to_bcd(&bcd_time);
+
+    rx8900_write_reg(RTC_RX8900_REG_SEC, bcd_time.sec);
+    rx8900_write_reg(RTC_RX8900_REG_MIN, bcd_time.min);
+    rx8900_write_reg(RTC_RX8900_REG_HOUR, bcd_time.hour);
+    rx8900_write_reg(RTC_RX8900_REG_DAY, bcd_time.day);
+    rx8900_write_reg(RTC_RX8900_REG_MONTH, bcd_time.month);
+    rx8900_write_reg(RTC_RX8900_REG_YEAR, bcd_time.year);
 }
 
 void drv_rtc_rx8900_get_time(rtc_rx8900_time_t *p_time)
 {
-    // TODO:
+    rtc_rx8900_time_t bcd_time;
+
+    bcd_time.sec = rx8900_read_reg(RTC_RX8900_REG_SEC);
+    bcd_time.min = rx8900_read_reg(RTC_RX8900_REG_MIN);
+    bcd_time.hour = rx8900_read_reg(RTC_RX8900_REG_HOUR);
+    bcd_time.day = rx8900_read_reg(RTC_RX8900_REG_DAY);
+    bcd_time.month = rx8900_read_reg(RTC_RX8900_REG_MONTH);
+    bcd_time.year = rx8900_read_reg(RTC_RX8900_REG_YEAR);
+
+    time_bcd_to_dec(&bcd_time);
+    *p_time = bcd_time;
 }
 
 void drv_rtc_rx8900_set_alarm(rtc_rx8900_time_t *p_time)

@@ -49,19 +49,23 @@ static void time_dec_to_bcd(rtc_rx8900_time_t *p_time)
 
 static void time_bcd_to_dec(rtc_rx8900_time_t *p_time)
 {
-    uint8_t i, j;
-    uint8_t *p_ptr_u8;
+    uint8_t f, i;
+    uint8_t *p_fields[] = {
+        &p_time->sec, &p_time->min, &p_time->hour,
+        &p_time->day, &p_time->month, &p_time->year
+    };
+    uint8_t bcd_val;
 
-    // BCDテーブルから10進数に変換
-    p_ptr_u8 = (uint8_t *)p_time;
-    for(j = 0; j < sizeof(rtc_rx8900_time_t); j++) {
-        for(i = 0; i < 100; i++) {
-            if(*p_ptr_u8 == g_dec_to_bcd_tbl[i]) {
-                *p_ptr_u8 = i;
+    for (uint8_t f = 0; f < 6; f++)
+    {
+        bcd_val = *p_fields[f];
+        for (i = 0; i < 100; i++)
+        {
+            if (bcd_val == g_dec_to_bcd_tbl[i]) {
+                *p_fields[f] = i;
                 break;
             }
         }
-        p_ptr_u8++;
     }
 }
 

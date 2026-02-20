@@ -16,9 +16,6 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define DEC_TO_BCD(val)                 (uint8_t)((((val) / 10) << 4) | ((val) % 10))
-#define BCD_TO_DEC(val)                 (uint8_t)((((val) >> 4) * 10) + ((val) & 0x0F))
-
 #define RTC_RX8900_I2C_ADDR             0x32 // RX8900のI2Cアドレス
 
 #define RTC_RX8900_REG_SEC              0x00 // 秒

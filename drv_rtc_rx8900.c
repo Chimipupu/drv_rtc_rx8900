@@ -56,7 +56,7 @@ static void time_bcd_to_dec(rtc_rx8900_time_t *p_time)
     };
     uint8_t bcd_val;
 
-    for (uint8_t f = 0; f < 6; f++)
+    for (f = 0; f < 6; f++)
     {
         bcd_val = *p_fields[f];
         for (i = 0; i < 100; i++)
@@ -93,6 +93,7 @@ static void rx8900_write_reg(uint8_t reg_addr, uint8_t data)
 {
     // アドレス: 0x00~0x0F
     if(((reg_addr >= 0x00) && (reg_addr <= 0x0F))) {
+        s_config.p_func_i2c_write(reg_addr);
         if(reg_addr == RTC_RX8900_REG_CTRL) {
             // Bit7のTESTビットは常に0
             s_config.p_func_i2c_write(data & 0x7F);
@@ -168,6 +169,7 @@ void drv_rtc_rx8900_set_time(rtc_rx8900_time_t *p_time)
     rx8900_write_reg(RTC_RX8900_REG_SEC, bcd_time.sec);
     rx8900_write_reg(RTC_RX8900_REG_MIN, bcd_time.min);
     rx8900_write_reg(RTC_RX8900_REG_HOUR, bcd_time.hour);
+    rx8900_write_reg(RTC_RX8900_REG_WEEK, p_time->weekday);
     rx8900_write_reg(RTC_RX8900_REG_DAY, bcd_time.day);
     rx8900_write_reg(RTC_RX8900_REG_MONTH, bcd_time.month);
     rx8900_write_reg(RTC_RX8900_REG_YEAR, bcd_time.year);
@@ -180,6 +182,7 @@ void drv_rtc_rx8900_get_time(rtc_rx8900_time_t *p_time)
     bcd_time.sec = rx8900_read_reg(RTC_RX8900_REG_SEC);
     bcd_time.min = rx8900_read_reg(RTC_RX8900_REG_MIN);
     bcd_time.hour = rx8900_read_reg(RTC_RX8900_REG_HOUR);
+    bcd_time.weekday = rx8900_read_reg(RTC_RX8900_REG_WEEK);
     bcd_time.day = rx8900_read_reg(RTC_RX8900_REG_DAY);
     bcd_time.month = rx8900_read_reg(RTC_RX8900_REG_MONTH);
     bcd_time.year = rx8900_read_reg(RTC_RX8900_REG_YEAR);
